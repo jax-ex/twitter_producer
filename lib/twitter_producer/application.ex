@@ -8,8 +8,7 @@ defmodule TwitterProducer.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: TwitterProducer.Worker.start_link(arg)
-      # {TwitterProducer.Worker, arg}
+      {TwitterProducer, twitter_bearer_token: System.fetch_env!("TWITTER_BEARER_TOKEN")}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

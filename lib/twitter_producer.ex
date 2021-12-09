@@ -1,18 +1,36 @@
 defmodule TwitterProducer do
-  @moduledoc """
-  Documentation for `TwitterProducer`.
-  """
+  use Broadway
 
-  @doc """
-  Hello world.
+  alias Broadway.Message
 
-  ## Examples
+  def start_link(opts) do
+    Broadway.start_link(__MODULE__,
+      name: __MODULE__,
+      producer: [
+        module: {TwitterProducer.Producer, opts},
+        # We cannot have more than one producer with the same token.
+        concurrency: 1
+      ],
+      processors: [
+        default: [concurrency: 5]
+      ],
+      batchers: [
+        default: [batch_size: 10, batch_timeout: 2000]
+      ]
+    )
+  end
 
-      iex> TwitterProducer.hello()
-      :world
+  @impl true
+  def handle_message(_, %Message{} = message, _) do
+    message
+    |> Message.update_data(fn data -> String.upcase(data) end)
+  end
 
-  """
-  def hello do
-    :world
+  @impl true
+  def handle_batch(_, messages, _, _) do
+    list = Enum.map(messages, fn message -> message.data end)
+    IO.inspect(list, label: "Got batch")
+
+    messages
   end
 end
